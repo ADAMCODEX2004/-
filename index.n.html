@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>המסלול — תכנית אימון</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0e0f11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="המסלול">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0f11; --card:#16171a; --card-hi:#1d1f23; --ink:#EDEAE4; --muted:#8b8d92;
+  --line:#26282c; --gold:#D9A441; --gold-dim:#8a6f38; --green:#3ECF8E; --coral:#E2624F;
+  --blue:#5B9BD5;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);overscroll-behavior-y:none;}
+body{font-family:'Heebo',-apple-system,sans-serif;color:var(--ink);min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+.mono{font-family:'IBM Plex Mono',monospace;}
+button{font-family:inherit;}
+input{font-family:inherit;}
+.page{display:none;padding:18px 14px 20px;animation:fadein .18s ease;}
+.page.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+/* ===== BOTTOM NAV ===== */
+.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(14,15,17,0.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom);}
+.nav button{flex:1;background:none;border:none;color:var(--muted);padding:10px 0 8px;font-size:9.5px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.nav button .ic{font-size:18px;line-height:1;}
+.nav button.active{color:var(--gold);}
+
+/* ===== SHARED ===== */
+.eyebrow{font-size:10.5px;letter-spacing:2.5px;color:var(--gold);font-weight:700;text-transform:uppercase;}
+h1{font-size:22px;font-weight:800;margin:2px 0 0;letter-spacing:-0.3px;}
+.sub{font-size:12px;color:var(--muted);}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;}
+.card-title{font-size:13.5px;font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.chip{font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;background:var(--card-hi);color:var(--muted);border:1px solid var(--line);}
+.chip.gold{background:rgba(217,164,65,.12);color:var(--gold);border-color:var(--gold-dim);}
+.chip.green{background:rgba(62,207,142,.12);color:var(--green);border-color:#1d4a37;}
+.btn{padding:10px 18px;border-radius:100px;border:1px solid var(--line);font-size:13px;font-weight:700;cursor:pointer;background:var(--card);color:var(--ink);}
+.btn.primary{background:var(--gold);color:#1a1200;border-color:var(--gold);}
+.btn.green{background:var(--green);color:#08281a;border-color:var(--green);}
+.btn.ghost{color:var(--muted);}
+.btn.sm{padding:7px 13px;font-size:12px;}
+.toast{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--green);color:#08281a;padding:10px 22px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.3s;pointer-events:none;z-index:70;text-align:center;max-width:82vw;}
+.toast.show{opacity:1;}
+.toast.warn{background:var(--coral);color:#fff;}
+
+/* ===== HOME ===== */
+.hero{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+.streak{text-align:left;}
+.streak .n{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;color:var(--gold);line-height:1;}
+.streak .l{font-size:9.5px;color:var(--muted);letter-spacing:.5px;}
+.route{position:relative;display:flex;justify-content:space-between;padding:0 4px;margin:6px 0 4px;}
+.route::before{content:'';position:absolute;top:19px;left:9%;right:9%;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 11px);}
+.node{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;color:inherit;cursor:pointer;padding:0;width:23%;}
+.node-dot{width:38px;height:38px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--muted);transition:.2s;}
+.node.done .node-dot{border-color:var(--green);color:var(--green);background:rgba(62,207,142,.08);}
+.node.active .node-dot{border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 4px rgba(217,164,65,.13);animation:pulse 2.4s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(217,164,65,.13);}50%{box-shadow:0 0 0 7px rgba(217,164,65,.07);}}
+.node-label{font-size:10px;color:var(--muted);font-weight:600;}
+.node.done .node-label{color:var(--green);}
+.node.active .node-label{color:var(--gold);}
+.today-card{background:linear-gradient(135deg,#1b1608,#16171a 60%);border:1px solid var(--gold-dim);}
+.today-card .big{font-size:19px;font-weight:800;margin:2px 0 4px;}
+.today-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin-bottom:14px;}
+.today-meta b{color:var(--ink);font-family:'IBM Plex Mono',monospace;}
+.start-big{width:100%;padding:15px;border-radius:14px;border:none;background:var(--gold);color:#1a1200;font-size:15px;font-weight:800;cursor:pointer;}
+.start-big:active{transform:scale(.98);}
+.rest-day{text-align:center;padding:10px 0 4px;color:var(--muted);font-size:13px;line-height:1.7;}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center;}
+.kpi .v{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;}
+.kpi .k{font-size:9.5px;color:var(--muted);margin-top:3px;letter-spacing:.3px;}
+.bw-row{display:flex;gap:8px;align-items:center;}
+.bw-row input{flex:1;background:var(--card-hi);border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;text-align:center;}
+
+/* ===== PLAN ===== */
+.day{background:var(--card);border:1px solid var(--line);border-radius:18px;margin-bottom:12px;overflow:hidden;}
+.day-header{display:flex;justify-content:space-between;align-items:center;padding:15px 16px 11px;cursor:pointer;}
+.day-header .left{display:flex;align-items:center;gap:10px;}
+.day-letter{width:30px;height:30px;border-radius:9px;background:var(--card-hi);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--gold);flex-shrink:0;}
+.day-header .name{font-size:15px;font-weight:700;}
+.day-header .tag{font-size:11px;color:var(--muted);}
+.day-header input.tag-edit{font-size:11px;color:var(--muted);border:1px dashed var(--gold-dim);border-radius:6px;padding:2px 6px;background:transparent;width:150px;display:none;}
+.chev{color:var(--muted);font-size:12px;transition:.2s;}
+.day.collapsed .chev{transform:rotate(-90deg);}
+.day.collapsed .body-wrap{display:none;}
+table{width:100%;border-collapse:collapse;}
+thead th{font-size:9.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:5px 4px;border-top:1px solid var(--line);text-align:center;}
+thead th.col-name{text-align:right;padding-right:16px;}
+tbody td{padding:10px 4px;border-top:1px solid var(--line);font-size:13px;text-align:center;white-space:nowrap;}
+tbody td.col-name{text-align:right;padding-right:16px;font-weight:500;white-space:normal;}
+tbody td.mono-cell{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12.5px;}
+.idx{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--card-hi);color:var(--muted);font-size:9.5px;font-weight:700;margin-left:8px;}
+td.missing{color:var(--coral);font-weight:700;}
+.editable input{width:100%;border:1px dashed #444750;border-radius:6px;padding:3px 5px;font-size:12px;text-align:center;background:var(--card-hi);color:var(--ink);display:none;}
+.editable.col-name input{text-align:right;}
+.edit-mode .editable span.val{display:none;}
+.edit-mode .editable input{display:inline-block;}
+.edit-mode .day-header .tag{display:none;}
+.edit-mode .day-header input.tag-edit{display:inline-block;}
+.add-row{display:none;width:100%;padding:10px;border:none;background:none;color:var(--gold);font-size:12.5px;font-weight:600;cursor:pointer;border-top:1px solid var(--line);}
+.edit-mode .add-row{display:block;}
+.del-btn{display:none;background:none;border:none;color:var(--coral);font-size:15px;cursor:pointer;padding:0 4px;}
+.edit-mode .del-btn{display:inline;}
+.start-btn{display:flex;width:calc(100% - 32px);margin:4px 16px 15px;justify-content:center;align-items:center;gap:8px;padding:12px;border-radius:12px;border:1px solid var(--gold-dim);background:rgba(217,164,65,.08);color:var(--gold);font-weight:700;font-size:13.5px;cursor:pointer;}
+.edit-mode .start-btn{display:none;}
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+
+/* ===== LIVE ===== */
+.overlay{position:fixed;inset:0;background:var(--bg);z-index:50;display:none;flex-direction:column;padding:16px 16px calc(18px + env(safe-area-inset-bottom));overflow-y:auto;}
+.overlay.show{display:flex;}
+.ov-top{display:flex;justify-content:space-between;align-items:center;}
+.ov-day{font-size:11.5px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.ov-timer{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+.ov-close{background:none;border:none;color:var(--muted);font-size:21px;cursor:pointer;padding:4px 8px;}
+.ov-progress{height:3px;background:var(--line);border-radius:3px;margin:10px 0 14px;overflow:hidden;}
+.ov-progress-bar{height:100%;background:var(--gold);border-radius:3px;transition:width .3s;}
+.ex-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.ex-nav button{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+.ex-count{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.ov-exname{font-size:22px;font-weight:800;text-align:center;margin:6px 0 2px;line-height:1.25;}
+.ov-exmeta{font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px;}
+.ov-exmeta b{color:var(--ink);font-family:'IBM Plex Mono',monospace;}
+.lastnote{font-size:11px;color:var(--blue);text-align:center;margin-bottom:10px;min-height:14px;}
+.warmup{font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px;min-height:14px;}
+.setlist{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.setrow{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 10px;}
+.setrow.done{border-color:#1d4a37;background:rgba(62,207,142,.05);}
+.setrow.current{border-color:var(--gold);}
+.setrow .sn{width:24px;height:24px;border-radius:50%;background:var(--card-hi);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;}
+.setrow.done .sn{background:var(--green);color:#08281a;}
+.setrow input{width:100%;background:var(--card-hi);border:1px solid var(--line);border-radius:9px;padding:8px 4px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;text-align:center;}
+.setrow .fld{flex:1;display:flex;flex-direction:column;gap:2px;}
+.setrow .fld label{font-size:8.5px;color:var(--muted);text-align:center;letter-spacing:.5px;}
+.setrow .okbtn{width:44px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--card-hi);color:var(--muted);font-size:17px;cursor:pointer;flex-shrink:0;}
+.setrow.done .okbtn{background:var(--green);border-color:var(--green);color:#08281a;}
+.plates{font-size:10.5px;color:var(--muted);text-align:center;margin-bottom:10px;min-height:13px;}
+.plates b{color:var(--gold);font-family:'IBM Plex Mono',monospace;}
+.ov-bottom{display:flex;gap:10px;margin-top:auto;padding-top:10px;}
+.ov-btn{flex:1;padding:14px;border-radius:14px;border:none;font-size:14px;font-weight:800;cursor:pointer;}
+.ov-btn.primary{background:var(--gold);color:#1a1200;}
+.ov-btn.ghost{background:var(--card);color:var(--muted);border:1px solid var(--line);}
+/* rest overlay */
+.rest-overlay{position:fixed;inset:0;background:rgba(14,15,17,.96);z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;}
+.rest-overlay.show{display:flex;}
+.rest-ring{position:relative;width:190px;height:190px;margin-bottom:14px;}
+.rest-ring svg{transform:rotate(-90deg);}
+.rest-ring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:46px;font-weight:700;}
+.rest-label{font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:26px;}
+.rest-controls{display:flex;gap:10px;}
+.rest-controls .btn{min-width:86px;}
+.done-screen{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.done-screen.show{display:flex;}
+.done-screen .big{font-size:46px;margin-bottom:8px;}
+.done-screen h2{font-size:21px;margin:0 0 4px;}
+.done-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:340px;margin:18px 0 8px;}
+.done-prs{color:var(--gold);font-size:13px;font-weight:700;margin-bottom:16px;min-height:18px;}
+
+/* ===== PROGRESS ===== */
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;font-size:12.5px;line-height:1.6;}
+.note .ic{font-size:16px;flex-shrink:0;}
+.note.warn{border-color:#5a3a2a;}
+.note.good{border-color:#1d4a37;}
+.pr-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;}
+.pr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.pr-name{font-size:13.5px;font-weight:700;}
+.pr-badge{font-size:10px;font-weight:700;color:#1a1200;background:var(--gold);padding:2px 8px;border-radius:100px;}
+.pr-badge.green{background:var(--green);color:#08281a;}
+.pr-meta{display:flex;justify-content:space-between;align-items:flex-end;}
+.pr-current{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:700;}
+.pr-current .unit{font-size:10.5px;color:var(--muted);font-weight:500;}
+.pr-date{font-size:10.5px;color:var(--muted);}
+.pr-e1rm{font-size:10.5px;color:var(--blue);font-family:'IBM Plex Mono',monospace;}
+.pr-empty{color:var(--muted);font-size:12.5px;text-align:center;padding:36px 20px;line-height:1.8;}
+.spark{display:block;margin-top:8px;}
+.heat{display:flex;gap:5px;}
+.heat div{flex:1;height:22px;border-radius:5px;}
+.balance-bars{display:flex;flex-direction:column;gap:8px;}
+.bal-row{display:flex;align-items:center;gap:8px;font-size:11px;}
+.bal-row .lbl{width:46px;color:var(--muted);font-weight:600;}
+.bal-row .bar{flex:1;height:14px;background:var(--card-hi);border-radius:7px;overflow:hidden;}
+.bal-row .fill{height:100%;border-radius:7px;}
+.bal-row .n{width:30px;text-align:left;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:11px;}
+
+/* ===== HISTORY ===== */
+.sess{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;overflow:hidden;}
+.sess-head{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;cursor:pointer;}
+.sess-head .l .t{font-size:13.5px;font-weight:700;}
+.sess-head .l .d{font-size:10.5px;color:var(--muted);margin-top:1px;}
+.sess-head .r{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);font-weight:700;}
+.sess-body{display:none;border-top:1px solid var(--line);padding:10px 15px 13px;}
+.sess.open .sess-body{display:block;}
+.sess-ex{font-size:12px;padding:5px 0;display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);}
+.sess-ex:last-child{border-bottom:none;}
+.sess-ex .sets{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:11px;}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:100px;padding:3px;margin-bottom:14px;}
+.seg button{flex:1;border:none;background:none;color:var(--muted);padding:8px;border-radius:100px;font-size:12.5px;font-weight:700;cursor:pointer;}
+.seg button.active{background:var(--gold);color:#1a1200;}
+#importFile{display:none;}
+.settings-grid{display:flex;flex-direction:column;gap:12px;}
+.set-row2{display:flex;justify-content:space-between;align-items:center;font-size:13px;}
+.set-row2 .opts{display:flex;gap:6px;}
+.opt{padding:6px 12px;border-radius:100px;border:1px solid var(--line);background:var(--card-hi);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'IBM Plex Mono',monospace;}
+.opt.on{background:var(--gold);color:#1a1200;border-color:var(--gold);}
+</style>
+</head>
+<body>
+
+<!-- ============ HOME ============ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div>
+      <div class="eyebrow" id="greet">בוקר טוב</div>
+      <h1>המסלול</h1>
+      <div class="sub" id="dateline"></div>
+    </div>
+    <div class="streak">
+      <div class="n" id="streakN">0</div>
+      <div class="l">שבועות רצופים</div>
+    </div>
+  </div>
+
+  <div class="route" id="route"></div>
+  <div style="text-align:center;font-size:11.5px;color:var(--muted);margin-bottom:14px;" id="weekline"></div>
+
+  <div class="card today-card" id="todayCard"></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <div class="card-title">משקל גוף <span class="chip" id="bwTrend"></span></div>
+    <div class="bw-row">
+      <input id="bwInput" inputmode="decimal" placeholder="77.0">
+      <button class="btn sm primary" onclick="logBW()">רשום</button>
+    </div>
+    <div id="bwSpark"></div>
+  </div>
+
+  <div id="homeNote"></div>
+</div>
+
+<!-- ============ NUTRITION ============ -->
+<div class="page" id="page-nutrition">
+  <div class="eyebrow">תזונה</div>
+  <h1 style="margin-bottom:14px;">קלוריות וחלבון</h1>
+
+  <div class="card today-card" id="nutriTodayCard"></div>
+
+  <div class="card">
+    <div class="card-title">הוסף רישום</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <div style="flex:1;"><label style="font-size:9.5px;color:var(--muted);">קלוריות</label>
+        <input id="nKcal" inputmode="numeric" placeholder="500" style="width:100%;background:var(--card-hi);border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;text-align:center;margin-top:3px;"></div>
+      <div style="flex:1;"><label style="font-size:9.5px;color:var(--muted);">חלבון (ג)</label>
+        <input id="nProtein" inputmode="numeric" placeholder="35" style="width:100%;background:var(--card-hi);border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;text-align:center;margin-top:3px;"></div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;" id="mealChips"></div>
+    <button class="btn primary" style="width:100%;" onclick="logMeal()">+ הוסף ליום</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">ארוחות היום</div>
+    <div id="todayMeals"></div>
+  </div>
+
+  <div class="seg">
+    <button class="active" id="segWeek" onclick="nutriSeg('week')">שבועי</button>
+    <button id="segMonth" onclick="nutriSeg('month')">חודשי</button>
+  </div>
+  <div id="nutriCoach"></div>
+  <div class="card">
+    <div class="card-title">קלוריות ליום <span class="chip mono" id="nKcalChip"></span></div>
+    <div id="nKcalChart"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">חלבון ליום (ג) <span class="chip mono" id="nProtChip"></span></div>
+    <div id="nProtChart"></div>
+  </div>
+  <div class="card">
+    <div class="card-title" id="nStatsTitle">סיכום</div>
+    <div class="kpis" id="nStats"></div>
+  </div>
+  <div id="nDayList"></div>
+</div>
+
+<!-- ============ PLAN ============ -->
+<div class="page" id="page-plan">
+  <div class="eyebrow">התכנית</div>
+  <h1 style="margin-bottom:14px;">4 ימים בשבוע</h1>
+  <div class="toolbar">
+    <button class="btn sm btn-edit" onclick="toggleEdit()">✏️ עריכה</button>
+    <button class="btn sm green btn-save" style="display:none" onclick="savePlan()">💾 שמור</button>
+  </div>
+  <div id="workout"></div>
+  <div style="text-align:center;font-size:11px;color:var(--muted);" id="footnote"></div>
+</div>
+
+<!-- ============ PROGRESS ============ -->
+<div class="page" id="page-progress">
+  <div class="eyebrow">התקדמות</div>
+  <h1 style="margin-bottom:14px;">המספרים שלך</h1>
+  <div id="coachNotes"></div>
+  <div class="card">
+    <div class="card-title">נפח שבועי (ק"ג) <span class="chip mono" id="volChip"></span></div>
+    <div id="equityChart"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">איזון שבועי — סטים לפי יום</div>
+    <div class="balance-bars" id="balanceBars"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">עקביות · 12 שבועות</div>
+    <div class="heat" id="heatmap"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9.5px;color:var(--muted);"><span>לפני 12 שבוע</span><span>היום</span></div>
+  </div>
+  <div id="progressList"></div>
+</div>
+
+<!-- ============ HISTORY ============ -->
+<div class="page" id="page-history">
+  <div class="eyebrow">יומן</div>
+  <h1 style="margin-bottom:14px;">אימונים שבוצעו</h1>
+  <div class="seg">
+    <button class="active" id="segLog" onclick="histSeg('log')">אימונים</button>
+    <button id="segSet" onclick="histSeg('settings')">הגדרות</button>
+  </div>
+  <div id="histLog"></div>
+  <div id="histSettings" style="display:none;">
+    <div class="card">
+      <div class="card-title">יעדי תזונה יומיים</div>
+      <div class="settings-grid">
+        <div class="set-row2"><span>קלוריות</span>
+          <input id="setKcal" inputmode="numeric" class="mono" style="width:80px;background:var(--card-hi);border:1px solid var(--line);border-radius:10px;padding:7px;color:var(--ink);text-align:center;font-weight:700;" onchange="setKcalTarget(this.value)">
+        </div>
+        <div class="set-row2"><span>חלבון (ג)</span>
+          <input id="setProtein" inputmode="numeric" class="mono" style="width:80px;background:var(--card-hi);border:1px solid var(--line);border-radius:10px;padding:7px;color:var(--ink);text-align:center;font-weight:700;" onchange="setProteinTarget(this.value)">
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">טיימר מנוחה</div>
+      <div class="settings-grid">
+        <div class="set-row2"><span>ברירת מחדל</span>
+          <div class="opts">
+            <button class="opt" data-rest="60" onclick="setRest(60)">60</button>
+            <button class="opt" data-rest="90" onclick="setRest(90)">90</button>
+            <button class="opt" data-rest="120" onclick="setRest(120)">120</button>
+            <button class="opt" data-rest="180" onclick="setRest(180)">180</button>
+          </div>
+        </div>
+        <div class="set-row2"><span>צליל בסיום מנוחה</span>
+          <div class="opts"><button class="opt" id="sndOn" onclick="setSound(true)">🔔</button><button class="opt" id="sndOff" onclick="setSound(false)">🔕</button></div>
+        </div>
+        <div class="set-row2"><span>משקל מוט (לחישוב פלטות)</span>
+          <div class="opts"><button class="opt" data-bar="15" onclick="setBar(15)">15</button><button class="opt" data-bar="20" onclick="setBar(20)">20</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">גיבוי ושחזור</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn sm" onclick="exportBackup()">⤓ הורד גיבוי</button>
+        <button class="btn sm" onclick="document.getElementById('importFile').click()">⤒ שחזר מקובץ</button>
+        <input type="file" id="importFile" accept="application/json" onchange="importBackup(event)">
+      </div>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:10px;line-height:1.6;">הנתונים נשמרים במכשיר. מומלץ להוריד גיבוי פעם בשבוע — אם תנקה היסטוריית דפדפן הכל יימחק.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--coral);">איפוס</div>
+      <button class="btn sm" style="border-color:#5a3a2a;color:var(--coral);" onclick="resetAll()">מחק את כל הנתונים</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LIVE SESSION ============ -->
+<div class="overlay" id="overlay">
+  <div class="ov-top">
+    <span class="ov-day" id="ovDayLabel">—</span>
+    <span class="ov-timer" id="ovClock">00:00</span>
+    <button class="ov-close" onclick="confirmClose()">✕</button>
+  </div>
+  <div class="ov-progress"><div class="ov-progress-bar" id="ovProgressBar" style="width:0%"></div></div>
+
+  <div id="liveBody">
+    <div class="ex-nav">
+      <button onclick="prevEx()">→ הקודם</button>
+      <span class="ex-count" id="exCount">1/6</span>
+      <button onclick="nextEx()">הבא ←</button>
+    </div>
+    <div class="ov-exname" id="ovExName">—</div>
+    <div class="ov-exmeta" id="ovExMeta">—</div>
+    <div class="lastnote" id="lastNote"></div>
+    <div class="warmup" id="warmupLine"></div>
+    <div class="plates" id="platesLine"></div>
+    <div class="setlist" id="setList"></div>
+  </div>
+
+  <div class="done-screen" id="doneScreen">
+    <div class="big">🔥</div>
+    <h2>אימון הושלם</h2>
+    <div class="sub" id="doneSub"></div>
+    <div class="done-stats" id="doneStats"></div>
+    <div class="done-prs" id="donePRs"></div>
+    <button class="ov-btn primary" style="max-width:230px;width:100%;" onclick="closeSession(true)">שמור וסגור</button>
+  </div>
+
+  <div class="ov-bottom" id="ovBottom">
+    <button class="ov-btn ghost" onclick="startRestManual()">⏱ מנוחה</button>
+    <button class="ov-btn primary" onclick="finishExercise()">סיימתי תרגיל ←</button>
+  </div>
+</div>
+
+<!-- rest overlay -->
+<div class="rest-overlay" id="restOverlay">
+  <div class="rest-ring">
+    <svg width="190" height="190">
+      <circle cx="95" cy="95" r="84" stroke="#26282c" stroke-width="8" fill="none"/>
+      <circle id="restCircle" cx="95" cy="95" r="84" stroke="#D9A441" stroke-width="8" fill="none" stroke-dasharray="527.8" stroke-dashoffset="0" stroke-linecap="round"/>
+    </svg>
+    <div class="num" id="restNum">90</div>
+  </div>
+  <div class="rest-label">מנוחה</div>
+  <div class="rest-controls">
+    <button class="btn sm" onclick="adjRest(-15)">−15</button>
+    <button class="btn sm primary" onclick="endRest()">דלג</button>
+    <button class="btn sm" onclick="adjRest(15)">+15</button>
+  </div>
+</div>
+
+<!-- bottom nav -->
+<div class="nav">
+  <button class="active" id="nav-home" onclick="go('home')"><span class="ic">🏠</span>בית</button>
+  <button id="nav-plan" onclick="go('plan')"><span class="ic">📋</span>תכנית</button>
+  <button id="nav-nutrition" onclick="go('nutrition')"><span class="ic">🍽</span>תזונה</button>
+  <button id="nav-progress" onclick="go('progress')"><span class="ic">📈</span>התקדמות</button>
+  <button id="nav-history" onclick="go('history')"><span class="ic">🗂</span>יומן</button>
+</div>
+
+<div class="toast" id="toast">✓ נשמר</div>
+
+<script>
+'use strict';
+/* ================= STORAGE & MIGRATION ================= */
+const K = {plan:'ws2_plan', hist:'ws2_hist', log:'ws2_log', bw:'ws2_bw', set:'ws2_settings', nutri:'ws2_nutrition'};
+const DEFAULT_PLAN = {days:[
+  {id:"day1",letter:"א",name:"יום ראשון",tag:"Push · ~90-100 דק׳",exercises:[
+    {name:"Barbell Bench Press",sets:"3",reps:"9",weight:"80",barbell:true},
+    {name:"Incline DB Press",sets:"3",reps:"9",weight:"24"},
+    {name:"Cable Fly",sets:"3",reps:"12",weight:"10"},
+    {name:"Overhead Press",sets:"3",reps:"9",weight:"10",barbell:true},
+    {name:"Machine Side Delts",sets:"3",reps:"12",weight:"25"},
+    {name:"Tricep Pushdown",sets:"3",reps:"9",weight:"25"},
+  ]},
+  {id:"day2",letter:"ב",name:"יום שני",tag:"Pull · ~85-95 דק׳",exercises:[
+    {name:"Pull-ups (Weighted)",sets:"3",reps:"9",weight:"0"},
+    {name:"Lat Pulldown (Wide)",sets:"3",reps:"9",weight:"55"},
+    {name:"Pullovers",sets:"3",reps:"12",weight:"25"},
+    {name:"T-Bar Row",sets:"3",reps:"9",weight:"45"},
+    {name:"Cable Curl",sets:"3",reps:"9",weight:"10"},
+    {name:"Hammer Curl",sets:"3",reps:"12",weight:"12"},
+  ]},
+  {id:"day3",letter:"ד",name:"יום רביעי",tag:"Legs · ~95-110 דק׳",exercises:[
+    {name:"Leg Press",sets:"3",reps:"9",weight:"60"},
+    {name:"Leg Extension",sets:"3",reps:"9",weight:"50"},
+    {name:"Leg Curl",sets:"3",reps:"9",weight:"30"},
+    {name:"DB Lateral Raises",sets:"3",reps:"12",weight:"10"},
+    {name:"Rear Delt Fly",sets:"3",reps:"12",weight:"12.5"},
+    {name:"Tricep Pushdown",sets:"3",reps:"12",weight:"25"},
+    {name:"Tricep Extension",sets:"3",reps:"9",weight:"15"},
+  ]},
+  {id:"day4",letter:"ה",name:"יום חמישי",tag:"Upper · ~100-115 דק׳",exercises:[
+    {name:"Incline Machine Press",sets:"3",reps:"9",weight:"42.5"},
+    {name:"Wide Press",sets:"3",reps:"9",weight:"40"},
+    {name:"Cable Crossovers (Low to High)",sets:"3",reps:"12",weight:"7.5"},
+    {name:"Chest Supported Row",sets:"3",reps:"9",weight:"50"},
+    {name:"T-Bar Row",sets:"3",reps:"9",weight:"40"},
+    {name:"Pullovers",sets:"3",reps:"12",weight:"25"},
+    {name:"Preacher Curl",sets:"3",reps:"9",weight:"25"},
+    {name:"Incline DB Curl",sets:"3",reps:"12",weight:"12"},
+  ]}
+]};
+function lsGet(k, fb){ try{ const v = JSON.parse(localStorage.getItem(k)); return v==null?fb:v; }catch(e){ return fb; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ toast('⚠️ שגיאת שמירה', true); } }
+function lsHas(k){ try{ return localStorage.getItem(k)!=null; }catch(e){ return false; } }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+/* migrate v1 -> v2 */
+(function migrate(){
+  if(lsHas(K.plan)) return;
+  const oldPlan = lsGet('adam_workout_data', null);
+  if(oldPlan && oldPlan.days){
+    oldPlan.days.forEach(d=>d.exercises.forEach(ex=>{
+      ex.weight = String(ex.weight||'').replace(/kg/gi,'').trim() || '0';
+      if(ex.weight==='?'||ex.weight==='—') ex.weight='0';
+      if(ex.reps==='?') ex.reps='9';
+      if(/barbell|overhead press/i.test(ex.name)) ex.barbell = true;
+    }));
+    lsSet(K.plan, oldPlan);
+  }
+  const oldHist = lsGet('adam_workout_history', null);
+  if(oldHist) lsSet(K.hist, oldHist);
+})();
+
+let plan = lsGet(K.plan, JSON.parse(JSON.stringify(DEFAULT_PLAN)));
+let hist = lsGet(K.hist, {});           // {exName:[{date,weight,reps,e1rm}]}
+let slog = lsGet(K.log, []);            // [{date,dayId,dayName,dur,tonnage,sets,exercises:[{name,sets:[{w,r}]}]}]
+let bw   = lsGet(K.bw, []);             // [{date,kg}]
+let nutri = lsGet(K.nutri, []);         // [{date(iso),kcal,protein,meal}]
+let settings = Object.assign({rest:90,sound:true,bar:20,kcalTarget:2000,proteinTarget:150}, lsGet(K.set, {}));
+
+/* ================= UTILS ================= */
+const $ = id => document.getElementById(id);
+function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+function e1rm(w,r){ if(!w||!r) return 0; return Math.round(w*(1+r/30)*10)/10; }
+function fmtDate(d){ return new Date(d).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit'}); }
+function weekStart(offset){ const now=new Date(); const s=new Date(now); s.setDate(now.getDate()-now.getDay()-offset*7); s.setHours(0,0,0,0); return s; }
+function toast(msg, warn){ const t=$('toast'); t.textContent=msg; t.classList.toggle('warn',!!warn); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+function beep(){
+  if(!settings.sound) return;
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [0,0.18,0.36].forEach((t,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = i===2?1046:784;
+      g.gain.setValueAtTime(0.001, ctx.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime+t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+t+0.15);
+      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+0.16);
+    });
+  }catch(e){}
+  if(navigator.vibrate) navigator.vibrate([120,60,120]);
+}
+
+/* ================= NAV ================= */
+let page = 'home';
+function go(p){
+  page = p;
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(el=>el.classList.remove('active'));
+  $('page-'+p).classList.add('active');
+  $('nav-'+p).classList.add('active');
+  if(p==='home') renderHome();
+  if(p==='plan') renderPlan();
+  if(p==='nutrition') renderNutritionPage();
+  if(p==='progress') renderProgress();
+  if(p==='history') renderHistory();
+  window.scrollTo(0,0);
+}
+
+/* ================= HOME ================= */
+const DOW_MAP = {0:"day1",1:"day2",3:"day3",4:"day4"};
+function todayDayId(){ return DOW_MAP[new Date().getDay()] || null; }
+function sessionsThisWeekFor(dayId){
+  const s = weekStart(0);
+  return slog.filter(e=>e.dayId===dayId && new Date(e.date)>=s).length;
+}
+function isDoneThisWeek(dayId){ return sessionsThisWeekFor(dayId)>0; }
+function weeklyCount(offset){
+  const s=weekStart(offset), e=new Date(s); e.setDate(s.getDate()+7);
+  return slog.filter(x=>{const d=new Date(x.date); return d>=s&&d<e;}).length;
+}
+function streakWeeks(){
+  let n=0;
+  for(let i=1;i<=52;i++){ if(weeklyCount(i)>=3) n++; else break; }
+  if(weeklyCount(0)>=3) n++;
+  return n;
+}
+function renderHome(){
+  const h = new Date().getHours();
+  $('greet').textContent = h<5?'לילה טוב':h<12?'בוקר טוב':h<17?'צהריים טובים':h<21?'ערב טוב':'לילה טוב';
+  $('dateline').textContent = new Date().toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});
+  $('streakN').textContent = streakWeeks();
+
+  const tl = todayDayId();
+  $('route').innerHTML = plan.days.map(day=>{
+    const done = isDoneThisWeek(day.id);
+    const active = day.id===tl && !done;
+    return `<button class="node${done?' done':active?' active':''}" onclick="go('plan');scrollToDay('${day.id}')">
+      <div class="node-dot">${done?'✓':day.letter}</div>
+      <div class="node-label">${day.tag.split('·')[0].trim()}</div></button>`;
+  }).join('');
+  const doneCount = plan.days.filter(d=>isDoneThisWeek(d.id)).length;
+  $('weekline').textContent = `${doneCount}/${plan.days.length} אימונים הושלמו השבוע`;
+
+  const tCard = $('todayCard');
+  const todayDay = tl ? plan.days.find(d=>d.id===tl) : null;
+  if(todayDay){
+    const day = todayDay;
+    const done = isDoneThisWeek(tl);
+    if(done){
+      tCard.innerHTML = `<div class="eyebrow" style="color:var(--green)">היום</div><div class="big">✓ ${day.name} בוצע</div><div class="rest-day">עבודה טובה. מנוחה, חלבון, שינה.</div>`;
+    } else {
+      const est = day.tag.split('·')[1]||'';
+      tCard.innerHTML = `<div class="eyebrow">האימון של היום</div>
+        <div class="big">${day.tag.split('·')[0].trim()} — ${day.name}</div>
+        <div class="today-meta"><span><b>${day.exercises.length}</b> תרגילים</span><span><b>${day.exercises.reduce((a,e)=>a+num(e.sets),0)}</b> סטים</span><span>${est}</span></div>
+        <button class="start-big" onclick="startSession('${day.id}')">▶ התחל אימון</button>`;
+    }
+  } else {
+    tCard.innerHTML = `<div class="eyebrow">היום</div><div class="rest-day">🛌 יום מנוחה מתוכנן<br>שינה טובה ואוכל נכון — זה החלק שבו השריר נבנה.</div>`;
+  }
+
+  const totalT = slog.reduce((a,e)=>a+(e.tonnage||0),0);
+  const prCount = countAllPRs();
+  const tNutri = dayTotals(todayEntries());
+  const protPct = Math.round(tNutri.protein/settings.proteinTarget*100);
+  $('kpis').innerHTML = `
+    <div class="kpi"><div class="v mono">${slog.length}</div><div class="k">אימונים סה"כ</div></div>
+    <div class="kpi"><div class="v mono">${(totalT/1000).toFixed(1)}t</div><div class="k">טונות הורמו</div></div>
+    <div class="kpi"><div class="v mono" style="color:${protPct>=90?'var(--green)':'var(--gold)'}">${protPct}%</div><div class="k">חלבון היום</div></div>`;
+
+  renderBW();
+  renderHomeNote();
+}
+function countAllPRs(){
+  let c=0;
+  Object.values(hist).forEach(arr=>{
+    let mx=0;
+    arr.forEach(e=>{ const v=e.e1rm||e1rm(num(e.weight),num(e.reps)); if(v>mx){ if(mx>0)c++; mx=v; } });
+  });
+  return c;
+}
+function renderBW(){
+  const last = bw[bw.length-1];
+  $('bwInput').placeholder = last? String(last.kg) : '77.0';
+  const chip = $('bwTrend');
+  if(bw.length>=2){
+    const diff = Math.round((bw[bw.length-1].kg - bw[bw.length-2].kg)*10)/10;
+    chip.textContent = (diff>0?'+':'')+diff+' ק"ג';
+    chip.className = 'chip ' + (diff<=0?'green':'');
+  } else chip.textContent = last? last.kg+' ק"ג' : '';
+  const el = $('bwSpark');
+  const pts = bw.slice(-12).map(e=>e.kg);
+  el.innerHTML = pts.length>=2 ? spark(pts, '#5B9BD5') : '';
+}
+function logBW(){
+  const v = num($('bwInput').value);
+  if(!v || v<30 || v>250){ toast('משקל לא תקין', true); return; }
+  bw.push({date:new Date().toISOString(), kg:v});
+  lsSet(K.bw, bw);
+  $('bwInput').value='';
+  renderBW();
+  toast('✓ משקל נרשם');
+}
+function renderHomeNote(){
+  const notes = coachNotes();
+  $('homeNote').innerHTML = notes.length ? `<div class="note ${notes[0].type}"><span class="ic">${notes[0].ic}</span><span>${notes[0].text}</span></div>` : '';
+}
+
+/* ================= PLAN ================= */
+let editMode=false, collapsed={};
+function scrollToDay(id){ collapsed[id]=false; renderPlan(); setTimeout(()=>{ const el=$('card-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },40); }
+function renderPlan(){
+  const c = $('workout'); c.innerHTML='';
+  plan.days.forEach((day,di)=>{
+    const div=document.createElement('div');
+    div.className=`day${editMode?' edit-mode':''}${collapsed[day.id]?' collapsed':''}`;
+    div.id='card-'+day.id;
+    div.innerHTML=`
+      <div class="day-header" onclick="toggleCollapse('${day.id}',event)">
+        <div class="left"><div class="day-letter">${day.letter}</div>
+          <div><div class="name">${day.name}</div><div class="tag">${day.tag}</div>
+          <input class="tag-edit" value="${day.tag}" onclick="event.stopPropagation()" onchange="plan.days[${di}].tag=this.value"/></div></div>
+        <div class="chev">▾</div>
+      </div>
+      <div class="body-wrap">
+        <table><thead><tr><th class="col-name">תרגיל</th><th>סטים</th><th>חזרות</th><th>ק"ג</th></tr></thead>
+        <tbody>${day.exercises.map((ex,ei)=>rowHTML(ex,di,ei)).join('')}</tbody></table>
+        <button class="add-row" onclick="plan.days[${di}].exercises.push({name:'תרגיל חדש',sets:'3',reps:'9',weight:'0'});renderPlan()">+ הוסף תרגיל</button>
+        <button class="start-btn" onclick="startSession('${day.id}')">▶ התחל אימון חי</button>
+      </div>`;
+    c.appendChild(div);
+  });
+  $('footnote').textContent = 'לחיצה על כותרת יום מקפלת אותו · הנתונים נשמרים במכשיר';
+}
+function rowHTML(ex,di,ei){
+  return `<tr><td class="col-name editable"><span class="idx">${ei+1}</span><span class="val">${ex.name}</span>
+    <input value="${ex.name}" onchange="plan.days[${di}].exercises[${ei}].name=this.value"/>
+    <button class="del-btn" onclick="plan.days[${di}].exercises.splice(${ei},1);renderPlan()">✕</button></td>
+    <td class="editable mono-cell"><span class="val">${ex.sets}</span><input value="${ex.sets}" onchange="plan.days[${di}].exercises[${ei}].sets=this.value"/></td>
+    <td class="editable mono-cell"><span class="val">${ex.reps}</span><input value="${ex.reps}" onchange="plan.days[${di}].exercises[${ei}].reps=this.value"/></td>
+    <td class="editable mono-cell"><span class="val">${ex.weight}</span><input value="${ex.weight}" onchange="plan.days[${di}].exercises[${ei}].weight=this.value"/></td></tr>`;
+}
+function toggleCollapse(id,ev){ if(ev&&ev.target.closest('input'))return; collapsed[id]=!collapsed[id]; renderPlan(); }
+function toggleEdit(){
+  editMode=!editMode;
+  document.querySelector('.btn-edit').textContent = editMode?'✕ בטל':'✏️ עריכה';
+  document.querySelector('.btn-save').style.display = editMode?'inline-block':'none';
+  if(editMode) Object.keys(collapsed).forEach(k=>collapsed[k]=false);
+  renderPlan();
+}
+function savePlan(){
+  lsSet(K.plan, plan);
+  editMode=false;
+  document.querySelector('.btn-edit').textContent='✏️ עריכה';
+  document.querySelector('.btn-save').style.display='none';
+  renderPlan(); toast('✓ התכנית נשמרה');
+}
+
+/* ================= LIVE SESSION ================= */
+let live=null, clockId=null, wakeLock=null;
+async function reqWake(){ try{ if('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); }catch(e){} }
+function relWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
+
+function lastEntry(name){ const h=hist[name]; return h&&h.length?h[h.length-1]:null; }
+function bestE1(name){ const h=hist[name]||[]; return h.reduce((m,e)=>Math.max(m, e.e1rm||e1rm(num(e.weight),num(e.reps))),0); }
+
+function startSession(dayId){
+  const day = plan.days.find(d=>d.id===dayId);
+  live = {dayId, exIdx:0, startTs:Date.now(), data: day.exercises.map(ex=>{
+    const le = lastEntry(ex.name);
+    const w = le? num(le.weight) : num(ex.weight);
+    const r = le? num(le.reps) : num(ex.reps);
+    const n = Math.max(1, num(ex.sets)||3);
+    return {name:ex.name, barbell:!!ex.barbell, target:num(ex.reps), sets:Array.from({length:n},()=>({w, r, done:false}))};
+  })};
+  $('doneScreen').classList.remove('show');
+  $('liveBody').style.display='block';
+  $('ovBottom').style.display='flex';
+  $('ovDayLabel').textContent = day.name+' · '+day.tag.split('·')[0].trim();
+  $('overlay').classList.add('show');
+  reqWake();
+  clockId = setInterval(()=>{ 
+    const s=Math.floor((Date.now()-live.startTs)/1000);
+    $('ovClock').textContent = String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  },1000);
+  renderLive();
+}
+function renderLive(){
+  const ed = live.data[live.exIdx];
+  $('exCount').textContent = (live.exIdx+1)+'/'+live.data.length;
+  $('ovProgressBar').style.width = Math.round((live.exIdx/live.data.length)*100)+'%';
+  $('ovExName').textContent = ed.name;
+  const day = plan.days.find(d=>d.id===live.dayId);
+  const pex = day.exercises[live.exIdx];
+  $('ovExMeta').innerHTML = `יעד: <b>${pex.sets}×${pex.reps}</b> · <b>${pex.weight}kg</b>`;
+  const le = lastEntry(ed.name);
+  $('lastNote').textContent = le? `בפעם הקודמת: ${le.weight}kg × ${le.reps} (${fmtDate(le.date)})` : 'פעם ראשונה עם התרגיל — תיעוד ראשון יוצר בסיס';
+  const topW = Math.max(...ed.sets.map(s=>s.w));
+  renderWarmupLine(topW);
+  renderPlates(ed, topW);
+  const list = $('setList');
+  list.innerHTML = ed.sets.map((s,si)=>`
+    <div class="setrow${s.done?' done':(si===firstOpen(ed)?' current':'')}">
+      <div class="sn">${s.done?'✓':si+1}</div>
+      <div class="fld"><label>ק"ג</label><input inputmode="decimal" value="${s.w}" onchange="liveSetW(${si},this.value)"></div>
+      <div class="fld"><label>חזרות</label><input inputmode="numeric" value="${s.r}" onchange="liveSetR(${si},this.value)"></div>
+      <button class="okbtn" onclick="toggleSetDone(${si})">${s.done?'↺':'✓'}</button>
+    </div>`).join('');
+}
+function firstOpen(ed){ return ed.sets.findIndex(s=>!s.done); }
+function liveSetW(si,v){ live.data[live.exIdx].sets[si].w = num(v); renderPlates(live.data[live.exIdx], Math.max(...live.data[live.exIdx].sets.map(s=>s.w))); }
+function liveSetR(si,v){ live.data[live.exIdx].sets[si].r = num(v); }
+function toggleSetDone(si){
+  const ed = live.data[live.exIdx];
+  ed.sets[si].done = !ed.sets[si].done;
+  renderLive();
+  if(ed.sets[si].done && ed.sets.some(s=>!s.done)) startRest(settings.rest);
+}
+function renderWarmupLine(w){
+  const el = $('warmupLine');
+  if(!w || w<30){ el.textContent=''; return; }
+  const rnd = n=>Math.round(n/2.5)*2.5;
+  el.textContent = `🔥 חימום: ${rnd(w*0.4)} ← ${rnd(w*0.6)} ← ${rnd(w*0.8)} ← ${w}kg`;
+}
+function renderPlates(ed, w){
+  const el = $('platesLine');
+  if(!ed.barbell || !w || w<=settings.bar){ el.innerHTML=''; return; }
+  let side = (w - settings.bar)/2;
+  const avail = [20,15,10,5,2.5,1.25];
+  const out=[];
+  avail.forEach(p=>{ while(side>=p-0.001){ out.push(p); side-=p; } });
+  el.innerHTML = out.length? `🏋️ מוט ${settings.bar}kg + כל צד: <b>${out.join(' + ')}</b>` : '';
+}
+function prevEx(){ if(live.exIdx>0){ live.exIdx--; renderLive(); } }
+function nextEx(){ if(live.exIdx<live.data.length-1){ live.exIdx++; renderLive(); } }
+function finishExercise(){
+  const ed = live.data[live.exIdx];
+  ed.sets.forEach(s=>s.done=true);
+  if(live.exIdx < live.data.length-1){ live.exIdx++; renderLive(); startRest(settings.rest); }
+  else finishSession();
+}
+/* rest */
+let rest={remain:0,total:90,id:null};
+const CIRC = 2*Math.PI*84;
+function startRest(sec){ rest.total=sec; rest.remain=sec; $('restOverlay').classList.add('show'); tickRest(); }
+function startRestManual(){ startRest(settings.rest); }
+function adjRest(d){ rest.remain=Math.max(1,rest.remain+d); rest.total=Math.max(rest.total,rest.remain); }
+function tickRest(){
+  clearTimeout(rest.id);
+  $('restNum').textContent = rest.remain;
+  $('restCircle').setAttribute('stroke-dashoffset', CIRC*(1-rest.remain/rest.total));
+  if(rest.remain<=0){ endRest(); beep(); return; }
+  rest.id=setTimeout(()=>{ rest.remain--; tickRest(); },1000);
+}
+function endRest(){ clearTimeout(rest.id); $('restOverlay').classList.remove('show'); }
+/* finish */
+function finishSession(){
+  endRest();
+  const durMin = Math.max(1, Math.round((Date.now()-live.startTs)/60000));
+  let tonnage=0, setCount=0, prs=[];
+  const exRecords=[];
+  live.data.forEach(ed=>{
+    const doneSets = ed.sets.filter(s=>s.done && s.w>=0 && s.r>0);
+    if(!doneSets.length) return;
+    doneSets.forEach(s=>{ tonnage += s.w*s.r; setCount++; });
+    const top = doneSets.reduce((a,b)=> e1rm(b.w,b.r)>e1rm(a.w,a.r)?b:a );
+    const newE1 = e1rm(top.w, top.r);
+    const prevBest = bestE1(ed.name);
+    if(newE1 > prevBest && prevBest>0) prs.push(ed.name);
+    if(!hist[ed.name]) hist[ed.name]=[];
+    hist[ed.name].push({date:new Date().toISOString(), weight:top.w, reps:top.r, e1rm:newE1});
+    exRecords.push({name:ed.name, sets:doneSets.map(s=>({w:s.w,r:s.r}))});
+  });
+  const day = plan.days.find(d=>d.id===live.dayId);
+  slog.push({date:new Date().toISOString(), dayId:live.dayId, dayName:day.name+' · '+day.tag.split('·')[0].trim(), dur:durMin, tonnage:Math.round(tonnage), sets:setCount, exercises:exRecords});
+  lsSet(K.hist,hist); lsSet(K.log,slog);
+  clearInterval(clockId); relWake();
+  $('liveBody').style.display='none';
+  $('ovBottom').style.display='none';
+  $('ovProgressBar').style.width='100%';
+  $('doneSub').textContent = day.name;
+  $('doneStats').innerHTML = `
+    <div class="kpi"><div class="v mono">${durMin}׳</div><div class="k">משך</div></div>
+    <div class="kpi"><div class="v mono">${Math.round(tonnage).toLocaleString()}</div><div class="k">ק"ג נפח</div></div>
+    <div class="kpi"><div class="v mono">${setCount}</div><div class="k">סטים</div></div>`;
+  $('donePRs').textContent = prs.length? '🏆 שיאים חדשים: '+prs.join(', ') : '';
+  $('doneScreen').classList.add('show');
+  if(prs.length) beep();
+}
+function confirmClose(){
+  if($('doneScreen').classList.contains('show')){ closeSession(false); return; }
+  if(confirm('לצאת בלי לשמור את האימון?')) closeSession(false);
+}
+function closeSession(){
+  endRest(); clearInterval(clockId); relWake();
+  live=null;
+  $('overlay').classList.remove('show');
+  go(page);
+}
+
+/* ================= NUTRITION ================= */
+const MEALS = ['🌅 בוקר','☀️ צהריים','🌙 ערב','🍎 נשנוש'];
+let selectedMeal = MEALS[0];
+function dayKey(d){ return new Date(d).toISOString().slice(0,10); }
+function todayEntries(){ const k=dayKey(new Date()); return nutri.filter(e=>dayKey(e.date)===k); }
+function dayTotals(entries){ return entries.reduce((a,e)=>({kcal:a.kcal+num(e.kcal), protein:a.protein+num(e.protein)}),{kcal:0,protein:0}); }
+
+function renderNutritionPage(){
+  renderMealChips();
+  renderNutriToday();
+  renderTodayMeals();
+  nutriSeg(nutriView||'week');
+}
+function renderMealChips(){
+  $('mealChips').innerHTML = MEALS.map(m=>`<button class="opt${m===selectedMeal?' on':''}" style="flex:1;font-size:11px;" onclick="selectedMeal='${m}';renderMealChips()">${m}</button>`).join('');
+}
+function renderNutriToday(){
+  const t = dayTotals(todayEntries());
+  const kPct = Math.min(100, Math.round(t.kcal/settings.kcalTarget*100));
+  const pPct = Math.min(100, Math.round(t.protein/settings.proteinTarget*100));
+  const kColor = t.kcal>settings.kcalTarget*1.08 ? 'var(--coral)' : (kPct>=90?'var(--green)':'var(--gold)');
+  const pColor = pPct>=90 ? 'var(--green)' : (pPct>=60?'var(--gold)':'var(--coral)');
+  $('nutriTodayCard').innerHTML = `
+    <div class="eyebrow">היום</div>
+    <div class="today-meta" style="margin-top:6px;">
+      <span>קלוריות <b class="mono" style="color:${kColor}">${Math.round(t.kcal)}</b> / ${settings.kcalTarget}</span>
+      <span>חלבון <b class="mono" style="color:${pColor}">${Math.round(t.protein)}</b>ג / ${settings.proteinTarget}ג</span>
+    </div>
+    <div class="bar" style="background:var(--card-hi);height:10px;border-radius:6px;overflow:hidden;margin-bottom:6px;"><div style="height:100%;width:${kPct}%;background:${kColor};border-radius:6px;"></div></div>
+    <div class="bar" style="background:var(--card-hi);height:10px;border-radius:6px;overflow:hidden;"><div style="height:100%;width:${pPct}%;background:${pColor};border-radius:6px;"></div></div>`;
+}
+function renderTodayMeals(){
+  const entries = todayEntries();
+  const el = $('todayMeals');
+  el.innerHTML = !entries.length ? `<div class="pr-empty" style="padding:16px;">עדיין לא רשמת כלום היום</div>` :
+    entries.slice().reverse().map(e=>{
+      const idx = nutri.indexOf(e);
+      return `<div class="sess-ex"><span>${e.meal||''} · ${e.kcal} קל׳ · ${e.protein}ג חלבון</span>
+      <button class="del-btn" style="display:inline;" onclick="deleteMeal(${idx})">✕</button></div>`;
+    }).join('');
+}
+function logMeal(){
+  const kcal = num($('nKcal').value), protein = num($('nProtein').value);
+  if(!kcal && !protein){ toast('הזן קלוריות או חלבון', true); return; }
+  nutri.push({date:new Date().toISOString(), kcal, protein, meal:selectedMeal});
+  lsSet(K.nutri, nutri);
+  $('nKcal').value=''; $('nProtein').value='';
+  renderNutriToday(); renderTodayMeals();
+  toast('✓ נרשם');
+}
+function deleteMeal(idx){ nutri.splice(idx,1); lsSet(K.nutri,nutri); renderNutriToday(); renderTodayMeals(); }
+
+let nutriView = 'week';
+function nutriSeg(v){
+  nutriView = v;
+  $('segWeek').classList.toggle('active', v==='week');
+  $('segMonth').classList.toggle('active', v==='month');
+  renderNutritionAnalysis(v);
+}
+function dailySeries(days){
+  const out=[];
+  for(let i=days-1;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const k = dayKey(d);
+    const es = nutri.filter(e=>dayKey(e.date)===k);
+    const t = dayTotals(es);
+    out.push({date:d, kcal:Math.round(t.kcal), protein:Math.round(t.protein), logged: es.length>0});
+  }
+  return out;
+}
+function barChart(series, key, target, color){
+  const w=320,h=100,p=4;
+  const vals = series.map(s=>s[key]);
+  const mx = Math.max(target*1.2, ...vals, 1);
+  const bw_ = (w-p*2)/series.length;
+  const bars = series.map((s,i)=>{
+    const bh = (s[key]/mx)*(h-p*2);
+    const x = p + i*bw_;
+    const y = h-p-bh;
+    const c = !s.logged ? '#2a2c30' : color;
+    return `<rect x="${x+1}" y="${y}" width="${bw_-2}" height="${bh}" rx="2" fill="${c}"/>`;
+  }).join('');
+  const targetY = h-p-(target/mx)*(h-p*2);
+  return `<svg width="100%" height="100" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    ${bars}
+    <line x1="${p}" y1="${targetY}" x2="${w-p}" y2="${targetY}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3"/>
+  </svg>`;
+}
+function renderNutritionAnalysis(view){
+  const days = view==='week' ? 7 : 30;
+  const series = dailySeries(days);
+  const logged = series.filter(s=>s.logged);
+
+  $('nStatsTitle').textContent = view==='week' ? 'סיכום שבועי' : 'סיכום חודשי';
+  if(!logged.length){
+    $('nKcalChart').innerHTML = `<div class="pr-empty" style="padding:20px;">אין עדיין רישומים ב${view==='week'?'שבוע':'חודש'} הזה</div>`;
+    $('nProtChart').innerHTML=''; $('nKcalChip').textContent=''; $('nProtChip').textContent='';
+    $('nStats').innerHTML=''; $('nDayList').innerHTML=''; $('nutriCoach').innerHTML='';
+    return;
+  }
+  const avgKcal = Math.round(logged.reduce((a,s)=>a+s.kcal,0)/logged.length);
+  const avgProt = Math.round(logged.reduce((a,s)=>a+s.protein,0)/logged.length);
+  const onTargetDays = logged.filter(s=>s.protein>=settings.proteinTarget*0.9 && s.kcal<=settings.kcalTarget*1.1).length;
+
+  $('nKcalChart').innerHTML = barChart(series,'kcal',settings.kcalTarget,'#D9A441');
+  $('nProtChart').innerHTML = barChart(series,'protein',settings.proteinTarget,'#3ECF8E');
+  $('nKcalChip').textContent = 'ממוצע '+avgKcal;
+  $('nProtChip').textContent = 'ממוצע '+avgProt+'ג';
+
+  $('nStats').innerHTML = `
+    <div class="kpi"><div class="v mono">${logged.length}/${days}</div><div class="k">ימים תועדו</div></div>
+    <div class="kpi"><div class="v mono">${onTargetDays}</div><div class="k">ימים ביעד</div></div>
+    <div class="kpi"><div class="v mono">${avgProt}ג</div><div class="k">חלבון ממוצע</div></div>`;
+
+  if(view==='week'){
+    $('nDayList').innerHTML = series.map(s=>{
+      const dname = s.date.toLocaleDateString('he-IL',{weekday:'short'});
+      const kOk = s.kcal<=settings.kcalTarget*1.1;
+      const pOk = s.protein>=settings.proteinTarget*0.9;
+      return `<div class="sess-ex"><span>${dname} ${fmtDate(s.date)}</span><span class="sets">${s.logged? `${s.kcal} קל׳ · ${s.protein}ג` : '—'} ${s.logged?(kOk&&pOk?'✅':'⚠️'):''}</span></div>`;
+    }).join('');
+  } else {
+    $('nDayList').innerHTML='';
+  }
+
+  /* coach notes specific to nutrition */
+  const notes=[];
+  const proteinMissDays = logged.filter(s=>s.protein < settings.proteinTarget*0.8).length;
+  if(logged.length>=4 && proteinMissDays/logged.length >= 0.5)
+    notes.push({type:'warn',ic:'🥩',text:`ב-<b>${proteinMissDays}</b> מתוך ${logged.length} ימים שתועדו החלבון היה מתחת ל-80% מהיעד — זה מה שיאט שריפת שומן ובניית שריר.`});
+  if(avgKcal > settings.kcalTarget*1.1)
+    notes.push({type:'warn',ic:'🔥',text:`ממוצע הקלוריות (<b>${avgKcal}</b>) גבוה ב-${Math.round((avgKcal/settings.kcalTarget-1)*100)}% מהיעד — בקצב הזה קשה לרדת ל-13% שומן.`});
+  else if(avgKcal <= settings.kcalTarget*1.05 && avgProt >= settings.proteinTarget*0.9)
+    notes.push({type:'good',ic:'🎯',text:`הממוצע ${view==='week'?'השבועי':'החודשי'} קרוב מאוד ליעד — קלוריות וחלבון שניהם במקום טוב.`});
+  const logRate = logged.length/days;
+  if(logRate < 0.5)
+    notes.push({type:'warn',ic:'📝',text:`תיעדת רק <b>${logged.length}</b> מתוך ${days} ימים — ככל שהתיעוד עקבי יותר, הניתוח מדויק יותר.`});
+  $('nutriCoach').innerHTML = notes.map(n=>`<div class="note ${n.type}"><span class="ic">${n.ic}</span><span>${n.text}</span></div>`).join('');
+}
+
+/* ================= PROGRESS ================= */
+function weeklyTonnage(n){
+  const out=[];
+  for(let i=n-1;i>=0;i--){
+    const s=weekStart(i), e=new Date(s); e.setDate(s.getDate()+7);
+    out.push(slog.filter(x=>{const d=new Date(x.date);return d>=s&&d<e;}).reduce((a,x)=>a+(x.tonnage||0),0));
+  }
+  return out;
+}
+function spark(vals,color){
+  if(vals.length<2) return '';
+  const w=300,h=44,p=4;
+  const mn=Math.min(...vals), mx=Math.max(...vals), rg=(mx-mn)||1;
+  const st=(w-p*2)/(vals.length-1);
+  const pts=vals.map((v,i)=>`${p+i*st},${h-p-((v-mn)/rg)*(h-p*2)}`).join(' ');
+  return `<svg class="spark" width="100%" height="44" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function planTargetReps(name){
+  for(const d of plan.days) for(const ex of d.exercises) if(ex.name===name){ const r=num(ex.reps); return r||null; }
+  return null;
+}
+function coachNotes(){
+  const notes=[];
+  const doneCount = plan.days.filter(d=>isDoneThisWeek(d.id)).length;
+  if(doneCount>=plan.days.length) notes.push({type:'good',ic:'🔥',text:`<b>שבוע מושלם</b> — כל ${plan.days.length} האימונים בוצעו.`});
+  const w = weeklyTonnage(3);
+  if(w[1]>0&&w[2]>0){
+    const pct=Math.round(((w[2]-w[1])/w[1])*100);
+    if(pct<=-15) notes.push({type:'warn',ic:'⚠️',text:`הנפח ירד <b>${Math.abs(pct)}%</b> משבוע שעבר — בדוק שינה/תזונה/עומס בוולט.`});
+    else if(pct>=15) notes.push({type:'good',ic:'📈',text:`הנפח עלה <b>${pct}%</b> משבוע שעבר — עומס מתקדם יפה.`});
+  }
+  Object.keys(hist).forEach(name=>{
+    const h=hist[name]; if(h.length<3) return;
+    const l3=h.slice(-3), ws=l3.map(e=>num(e.weight));
+    if(ws.every(x=>x===ws[0]&&x>0)){
+      const t=planTargetReps(name);
+      if(t!=null && !l3.every(e=>num(e.reps)>=t))
+        notes.push({type:'warn',ic:'🔻',text:`<b>${name}</b> תקוע 3 אימונים על ${ws[0]}kg בלי לפגוע ביעד — שקול לרדת 10% ולבנות מחדש.`});
+    }
+  });
+  plan.days.forEach(day=>{
+    const es=slog.filter(e=>e.dayId===day.id);
+    if(!es.length) return;
+    const daysSince=Math.floor((Date.now()-new Date(es[es.length-1].date))/(864e5));
+    if(daysSince>=9) notes.push({type:'warn',ic:'⏰',text:`עברו <b>${daysSince} ימים</b> מאז ${day.name} האחרון.`});
+  });
+  if(bw.length>=4){
+    const d=bw[bw.length-1].kg-bw[bw.length-4].kg;
+    if(d<=-1.5) notes.push({type:'good',ic:'⚖️',text:`ירדת <b>${Math.abs(d).toFixed(1)} ק"ג</b> ב-3 שקילות האחרונות — בכיוון ליעד ה-13%.`});
+    if(d>=1.5) notes.push({type:'warn',ic:'⚖️',text:`עלית <b>${d.toFixed(1)} ק"ג</b> ב-3 שקילות — אם זה לא מתוכנן, בדוק קלוריות.`});
+  }
+  return notes;
+}
+function renderProgress(){
+  $('coachNotes').innerHTML = coachNotes().map(n=>`<div class="note ${n.type}"><span class="ic">${n.ic}</span><span>${n.text}</span></div>`).join('');
+  const weeks = weeklyTonnage(10);
+  const el=$('equityChart');
+  if(weeks.every(v=>v===0)){ el.innerHTML=`<div class="pr-empty" style="padding:20px;">אין עדיין אימונים מתועדים</div>`; $('volChip').textContent=''; }
+  else{
+    const w=320,h=92,p=6, mx=Math.max(...weeks,1), st=(w-p*2)/(weeks.length-1);
+    const pts=weeks.map((v,i)=>({x:p+i*st,y:h-p-(v/mx)*(h-p*2),v}));
+    const up = pts.length>1 && pts[pts.length-1].v>=pts[pts.length-2].v;
+    const col = up?'#3ECF8E':'#E2624F';
+    const line=pts.map(q=>`${q.x},${q.y}`).join(' ');
+    el.innerHTML=`<svg width="100%" height="92" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <polygon points="${p},${h-p} ${line} ${w-p},${h-p}" fill="${col}" opacity="0.12"/>
+      <polyline points="${line}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round"/>
+      ${pts.map(q=>`<circle cx="${q.x}" cy="${q.y}" r="2.2" fill="${col}"/>`).join('')}</svg>`;
+    $('volChip').textContent = weeks[weeks.length-1].toLocaleString()+' ק"ג';
+  }
+  /* balance */
+  const s0=weekStart(0);
+  const bal = plan.days.map(day=>{
+    const sets = slog.filter(e=>e.dayId===day.id&&new Date(e.date)>=s0).reduce((a,e)=>a+(e.sets||0),0);
+    return {label:day.tag.split('·')[0].trim(), sets};
+  });
+  const mxB = Math.max(...bal.map(b=>b.sets),1);
+  const cols=['#D9A441','#3ECF8E','#E2624F','#5B9BD5'];
+  $('balanceBars').innerHTML = bal.map((b,i)=>`<div class="bal-row"><span class="lbl">${b.label}</span><div class="bar"><div class="fill" style="width:${Math.round(b.sets/mxB*100)}%;background:${cols[i%4]};"></div></div><span class="n">${b.sets}</span></div>`).join('');
+  /* heatmap */
+  const hm=[];
+  for(let i=11;i>=0;i--) hm.push(weeklyCount(i));
+  $('heatmap').innerHTML = hm.map(c=>{
+    let bg='var(--line)';
+    if(c>0)bg='rgba(217,164,65,.25)'; if(c>=2)bg='rgba(217,164,65,.55)'; if(c>=3)bg='var(--gold)'; if(c>=4)bg='var(--green)';
+    return `<div style="background:${bg}" title="${c}"></div>`;
+  }).join('');
+  /* per exercise */
+  const names=[]; plan.days.forEach(d=>d.exercises.forEach(ex=>{ if(!names.includes(ex.name)) names.push(ex.name); }));
+  const withH = names.filter(n=>(hist[n]||[]).length);
+  $('progressList').innerHTML = !withH.length
+    ? `<div class="pr-empty">תתחיל אימון חי מהבית או מהתכנית —<br>כל סט שתתעד יבנה כאן גרפים ושיאים 📊</div>`
+    : withH.map(name=>{
+      const h=hist[name].slice(-10);
+      const last=h[h.length-1];
+      const best=bestE1(name);
+      const lastE1=last.e1rm||e1rm(num(last.weight),num(last.reps));
+      const isPR = lastE1>=best && best>0 && h.length>1;
+      const t=planTargetReps(name);
+      const ready = h.length>=2 && num(h[h.length-1].weight)===num(h[h.length-2].weight) && t!=null && num(h[h.length-1].reps)>=t && num(h[h.length-2].reps)>=t;
+      return `<div class="pr-card">
+        <div class="pr-top"><div class="pr-name">${name}</div>${isPR?'<div class="pr-badge">🏆 PR</div>':(ready?'<div class="pr-badge green">⬆️ +2.5kg</div>':'')}</div>
+        <div class="pr-meta"><div><div class="pr-current mono">${last.weight}<span class="unit">kg × ${last.reps}</span></div>
+        <div class="pr-date">${fmtDate(last.date)}</div></div>
+        <div class="pr-e1rm">e1RM ${lastE1}kg · שיא ${best}kg</div></div>
+        ${spark(h.map(e=>num(e.weight)), '#D9A441')}</div>`;
+    }).join('');
+}
+
+/* ================= HISTORY ================= */
+function histSeg(which){
+  $('segLog').classList.toggle('active',which==='log');
+  $('segSet').classList.toggle('active',which==='settings');
+  $('histLog').style.display = which==='log'?'block':'none';
+  $('histSettings').style.display = which==='settings'?'block':'none';
+  if(which==='settings') renderSettings();
+}
+function renderHistory(){
+  histSeg('log');
+  const el=$('histLog');
+  if(!slog.length){ el.innerHTML=`<div class="pr-empty">עדיין אין אימונים ביומן.<br>אחרי כל אימון חי הוא יופיע כאן עם כל הסטים.</div>`; return; }
+  el.innerHTML = slog.slice().reverse().map((s,i)=>`
+    <div class="sess" id="sess-${i}">
+      <div class="sess-head" onclick="document.getElementById('sess-${i}').classList.toggle('open')">
+        <div class="l"><div class="t">${s.dayName}</div>
+        <div class="d">${new Date(s.date).toLocaleDateString('he-IL',{weekday:'short',day:'2-digit',month:'2-digit'})} · ${s.dur}׳ · ${s.sets} סטים</div></div>
+        <div class="r">${(s.tonnage||0).toLocaleString()} ק"ג</div>
+      </div>
+      <div class="sess-body">${(s.exercises||[]).map(ex=>`
+        <div class="sess-ex"><span>${ex.name}</span><span class="sets">${ex.sets.map(st=>st.w+'×'+st.r).join(' · ')}</span></div>`).join('')}</div>
+    </div>`).join('');
+}
+function renderSettings(){
+  document.querySelectorAll('[data-rest]').forEach(b=>b.classList.toggle('on', num(b.dataset.rest)===settings.rest));
+  $('sndOn').classList.toggle('on', settings.sound);
+  $('sndOff').classList.toggle('on', !settings.sound);
+  document.querySelectorAll('[data-bar]').forEach(b=>b.classList.toggle('on', num(b.dataset.bar)===settings.bar));
+  $('setKcal').value = settings.kcalTarget;
+  $('setProtein').value = settings.proteinTarget;
+}
+function setKcalTarget(v){ const n=num(v); if(n>=800&&n<=6000){ settings.kcalTarget=n; lsSet(K.set,settings); toast('✓ יעד קלוריות עודכן'); } else toast('ערך לא סביר', true); }
+function setProteinTarget(v){ const n=num(v); if(n>=30&&n<=400){ settings.proteinTarget=n; lsSet(K.set,settings); toast('✓ יעד חלבון עודכן'); } else toast('ערך לא סביר', true); }
+function setRest(v){ settings.rest=v; lsSet(K.set,settings); renderSettings(); toast('✓ מנוחה: '+v+' שניות'); }
+function setSound(v){ settings.sound=v; lsSet(K.set,settings); renderSettings(); if(v) beep(); }
+function setBar(v){ settings.bar=v; lsSet(K.set,settings); renderSettings(); }
+
+/* ================= BACKUP ================= */
+function exportBackup(){
+  const blob = new Blob([JSON.stringify({v:2,plan,hist,slog,bw,nutri,settings},null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`hamasla-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('⤓ גיבוי הורד');
+}
+function importBackup(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const o=JSON.parse(e.target.result);
+      if(o.plan) plan=o.plan; if(o.hist) hist=o.hist; if(o.slog) slog=o.slog; if(o.bw) bw=o.bw; if(o.nutri) nutri=o.nutri; if(o.settings) settings=Object.assign(settings,o.settings);
+      lsSet(K.plan,plan);lsSet(K.hist,hist);lsSet(K.log,slog);lsSet(K.bw,bw);lsSet(K.nutri,nutri);lsSet(K.set,settings);
+      go('home'); toast('⤒ שוחזר בהצלחה');
+    }catch(err){ toast('⚠️ קובץ לא תקין',true); }
+  };
+  r.readAsText(f); ev.target.value='';
+}
+function resetAll(){
+  if(!confirm('למחוק את כל הנתונים? אין דרך חזרה.')) return;
+  if(!confirm('בטוח בטוח? מומלץ להוריד גיבוי קודם.')) return;
+  Object.values(K).forEach(k=>lsDel(k));
+  location.reload();
+}
+
+/* ================= BOOT ================= */
+renderHome();
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      reg.update();
+      document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') reg.update(); });
+    }).catch(()=>{});
+  });
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && live) reqWake(); });
+</script>
+</body>
+</html>
